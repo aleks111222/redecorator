@@ -1,14 +1,18 @@
 import os
 import re
+from turtle import begin_fill
+
+from matplotlib.pyplot import close
 
 # TODO: reading file and files from path
+
+voidElements = ['<area', '<base', '<br', '<col', '<command', '<embed',
+                '<hr', '<img', '<input', '<keygen', '<link', '<meta',
+                '<param', '<source', '<track', '<video', '<audio', '<wbr']
 
 def checkTagMatching(tagList):
 
     stack = []
-    voidElements = ['<area', '<base', '<br', '<col', '<command', '<embed',
-                    '<hr', '<img', '<input', '<keygen', '<link', '<meta',
-                    '<param', '<source', '<track', '<video', '<audio', '<wbr']
 
     for tag in tagList:
         if(tag[1] != '/'):
@@ -53,16 +57,31 @@ if(os.path.isfile(filePath)):
         
         # open the file
         textFile = open('index.html', 'r+')
-        # read the file
+        # read the file as a string
         htmlText = textFile.read()
         
         # check if the file contains a special expression at the beginning of the file
         if(htmlText.find('<!DOCTYPE html>') >= len(htmlText) - len(htmlText.lstrip())):
+            
             # separate tags into a list
             tagList = re.findall(r'<[^>\n]+>', htmlText)
             # remove <!DOCTYPE html> from tag list
             tagList = tagList[1 : ]
+
+            # remove script tags with any tags and content inside them
+            for (openTag, closeTag) in [('<script>', '</script>'), ('<style>', '</style>')]:
+                if(openTag in tagList and closeTag in tagList and tagList.index(openTag) < tagList.index(closeTag)):
+                    beginList
+                    endList
+                    tagList = beginList + endList
+                    print(tagList)
+                    if(openTag == '<style>'):
+                        htmlText[ : htmlText.find(openTag)].append(htmlText[htmlText.find(closeTag) + len(closeTag) : ])
+
             print(tagList)
-            print(checkTagMatching(tagList))
-            #close file
+            
+            #if(checkTagMatching(tagList)):
+                #pass
+            
+            #close the file
             textFile.close()
