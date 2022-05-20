@@ -68,20 +68,37 @@ if(os.path.isfile(filePath)):
             # remove <!DOCTYPE html> from tag list
             tagList = tagList[1 : ]
 
-            # remove script tags with any tags and content inside them
-            for (openTag, closeTag) in [('<script>', '</script>'), ('<style>', '</style>')]:
-                if(openTag in tagList and closeTag in tagList and tagList.index(openTag) < tagList.index(closeTag)):
-                    beginList
-                    endList
-                    tagList = beginList + endList
-                    print(tagList)
-                    if(openTag == '<style>'):
-                        htmlText[ : htmlText.find(openTag)].append(htmlText[htmlText.find(closeTag) + len(closeTag) : ])
+            if(checkTagMatching(tagList)):
+                # remove script tags with any tags and content inside them
+                for (openTag, closeTag) in [('<script>', '</script>'), ('<style>', '</style>')]:
+                    if(openTag in tagList and closeTag in tagList and tagList.index(openTag) < tagList.index(closeTag)):
+                        beginList = tagList[ : tagList.index(openTag)]
+                        endList = tagList[tagList.index(closeTag) + 1 : ]
+                        tagList = beginList + endList
+                        if(openTag == '<style>'):
+                            beginText = htmlText[ : htmlText.find(openTag)]
+                            endText = htmlText[htmlText.find(closeTag) + len(closeTag) : ]
+                            htmlText = beginText + endText
+            
+                print(tagList)
 
-            print(tagList)
+                #htmlText.replace('<link rel="stylesheet">')
+
+                tagsToBeRemovedWithContent = [('<figure>', '</figure>'), ('<img>', ''), ('<area>', ''), 
+                                            ('<map>', '</map>'), ('<video>', ''), ('<embed>', ''),
+                                            ('<iframe>', '<iframe>'), ('<object>', '<object>'), ('<picture>', '<picture>'),
+                                            ('<portal>', '<portal>'), ('<canvas>', '<canvas>'), ('<bgsound>', '<bgsound>'), 
+                                            ('<frame>', '<frame>'), ('<frameset>', '<frameset>'), ('<image>', '<image>')]
+
+                for (openTag, closeTag) in tagsToBeRemovedWithContent:
+                    if(openTag in tagList and closeTag in tagList and tagList.index(openTag) < tagList.index(closeTag)):
+                        beginList = tagList[ : tagList.index(openTag)]
+                        endList = tagList[tagList.index(closeTag) + 1 : ]
+                        tagList = beginList + endList
+                        beginText = htmlText[ : htmlText.find(openTag)]
+                        endText = htmlText[htmlText.find(closeTag) + len(closeTag) : ]
+                        htmlText = beginText + endText
+                
             
-            #if(checkTagMatching(tagList)):
-                #pass
-            
-            #close the file
-            textFile.close()
+        #close the file
+        textFile.close()
