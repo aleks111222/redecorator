@@ -6,28 +6,23 @@ from matplotlib.pyplot import close
 
 # TODO: reading file and files from path
 
-voidElements = ['<area', '<base', '<br', '<col', '<command', '<embed',
-                '<hr', '<img', '<input', '<keygen', '<link', '<meta',
-                '<param', '<source', '<track', '<video', '<audio', '<wbr']
+voidElements = ['area', 'base', 'br', 'col', 'command', 'embed',
+                'hr', 'img', 'input', 'keygen', 'link', 'meta',
+                'param', 'source', 'track', 'video', 'audio', 'wbr']
 
 def checkTagMatching(tagList):
 
     stack = []
 
     for tag in tagList:
-        if(tag[1] != '/'):
+        if(tag[0] != '/'):
             # check if the tag does not need closing 
-            if(not set(voidElements).intersection(set(tag[ : len(tag) - 1].split()))):
+            if(not set(voidElements).intersection(set([tag.split()[0]]))):
                 stack.append(tag)
         else:
             if(len(stack) > 0):
-                openTag = stack[len(stack) - 1]
-                closeTag = tag
-                if(' ' in openTag):
-                    openTag = openTag.split(' ')[0][1 : ]
-                else:
-                    openTag = openTag[1 : len(openTag) - 1]
-                closeTag = closeTag[2 : len(closeTag) - 1]
+                openTag = stack[len(stack) - 1].split()[0]
+                closeTag = tag[1 : ]
                 if(openTag == closeTag):
                     stack.pop()
                 else:
@@ -67,38 +62,49 @@ if(os.path.isfile(filePath)):
             tagList = re.findall(r'<[^>\n]+>', htmlText)
             # remove <!DOCTYPE html> from tag list
             tagList = tagList[1 : ]
+            tagList = [tag[1 : -1] for tag in tagList]
+
+            print(tagList)
 
             if(checkTagMatching(tagList)):
-                # remove script tags with any tags and content inside them
-                for (openTag, closeTag) in [('<script>', '</script>'), ('<style>', '</style>')]:
-                    if(openTag in tagList and closeTag in tagList and tagList.index(openTag) < tagList.index(closeTag)):
+                # remove script tags only and style tags with content 
+                for (openTag, closeTag) in [('script', '/script'), ('style', '/style')]:
+                    if(openTag in tagList):
                         beginList = tagList[ : tagList.index(openTag)]
                         endList = tagList[tagList.index(closeTag) + 1 : ]
                         tagList = beginList + endList
-                        if(openTag == '<style>'):
-                            beginText = htmlText[ : htmlText.find(openTag)]
-                            endText = htmlText[htmlText.find(closeTag) + len(closeTag) : ]
+                        if(openTag == 'style'):
+                            beginText = htmlText[ : htmlText.find('<' + openTag)]
+                            endText = htmlText[htmlText.find(closeTag + '>') + len(closeTag) + 1 : ]
                             htmlText = beginText + endText
             
                 print(tagList)
 
-                #htmlText.replace('<link rel="stylesheet">')
-
-                tagsToBeRemovedWithContent = [('<figure>', '</figure>'), ('<img>', ''), ('<area>', ''), 
-                                            ('<map>', '</map>'), ('<video>', ''), ('<embed>', ''),
-                                            ('<iframe>', '<iframe>'), ('<object>', '<object>'), ('<picture>', '<picture>'),
-                                            ('<portal>', '<portal>'), ('<canvas>', '<canvas>'), ('<bgsound>', '<bgsound>'), 
-                                            ('<frame>', '<frame>'), ('<frameset>', '<frameset>'), ('<image>', '<image>')]
-
-                for (openTag, closeTag) in tagsToBeRemovedWithContent:
-                    if(openTag in tagList and closeTag in tagList and tagList.index(openTag) < tagList.index(closeTag)):
-                        beginList = tagList[ : tagList.index(openTag)]
-                        endList = tagList[tagList.index(closeTag) + 1 : ]
-                        tagList = beginList + endList
-                        beginText = htmlText[ : htmlText.find(openTag)]
-                        endText = htmlText[htmlText.find(closeTag) + len(closeTag) : ]
-                        htmlText = beginText + endText
+                tagsToBeRemovedWithContent = ['figure', 'img', 'area', 
+                                              'map', 'video' 'embed',
+                                              'iframe', 'object', 'picture',
+                                              'portal', 'canvas', 'bgsound', 
+                                              'frame', 'frameset', 'image']
                 
-            
+                for tag in tagList:
+                    if(tag.split()[0] in tagsToBeRemovedWithContent):
+                        openTag = tag
+                        beginList = tagList[ : tagList.index(openTag)]
+                        beginText = htmlText[ : htmlText.find('<' + openTag.split()[0])]
+                        if(not set(voidElements).intersection(set([tag.split()[0]]))):
+                            closeTag = '/' + openTag
+                            endList = tagList[tagList.index(closeTag) + 1 : ]
+                            endText = htmlText[htmlText.find(closeTag + '>', len(beginText)) + len(closeTag) + 1 : ]
+                        else:
+                            closeTag = '>'
+                            endList = tagList[tagList.index(openTag) + 1 : ]
+                            endText = htmlText[htmlText.find(closeTag, len(beginText)) + len(closeTag): ]
+                        htmlText = beginText + endText
+                        tagList = beginList + endList
+                
+                print(tagList)
+
+                
+                
         #close the file
         textFile.close()
