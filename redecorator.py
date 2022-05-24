@@ -1,8 +1,7 @@
 import os
 import re
-from turtle import begin_fill
 
-from matplotlib.pyplot import close
+from matplotlib import style
 
 # TODO: reading file and files from path
 
@@ -101,10 +100,38 @@ if(os.path.isfile(filePath)):
                             endText = htmlText[htmlText.find(closeTag, len(beginText)) + len(closeTag): ]
                         htmlText = beginText + endText
                         tagList = beginList + endList
+
+                for tag in tagList:
+                    if('link' in tag.split() and 'rel="stylesheet"' in tag.split()): # reduce it to 'stylesheet' search
+                        tagList.remove(tag)
+                        htmlText = htmlText.replace('<' + tag + '>', '')
+            
+                print(tagList)
+
+                tagsToBeRemovedWithoutContent = ['big', 'strong', 'em', 
+                                                 'i', 'kbd' 'mark',
+                                                 'var', 'big', 'blink']
+                
+                for tag in tagList:
+                    openTag = tag.split()[0]
+                    if(openTag in tagsToBeRemovedWithoutContent):
+                        tagList.remove(tag)
+                        tagList.remove('/' + openTag)
+                        htmlText = htmlText.replace('<' + openTag, '')
+                        htmlText = htmlText.replace('</' + openTag + '>', '')
+                
+                print(tagList)
+                
+                for tag in tagList:
+                    styleAttribute = re.search(r'style(\s*=\s*"[^>\n]+")', tag)
+                    if(styleAttribute):
+                        newTag = tag.replace(styleAttribute.group(), '')
+                        tagList[tagList.index(tag)] = newTag
+                        htmlText = htmlText.replace(styleAttribute.group(), '')
                 
                 print(tagList)
 
-                
-                
+                print(htmlText)
+
         #close the file
         textFile.close()
