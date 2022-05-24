@@ -1,8 +1,6 @@
 import os
 import re
 
-from matplotlib import style
-
 # TODO: reading file and files from path
 
 voidElements = ['area', 'base', 'br', 'col', 'command', 'embed',
@@ -36,7 +34,7 @@ def checkTagMatching(tagList):
     
 
 # get the file path
-filePath = 'index.html'  
+filePath = 'index2.html'  
 
 # check if the file exists
 if(os.path.isfile(filePath)):
@@ -54,7 +52,7 @@ if(os.path.isfile(filePath)):
     if(fileExtension != None and fileExtension == '.html'):
         
         # open the file
-        textFile = open('index.html', 'r+')
+        textFile = open('index2.html', 'r+')
         # read the file as a string
         htmlText = textFile.read()
 
@@ -118,7 +116,7 @@ if(os.path.isfile(filePath)):
                     if(openTag in tagsToBeRemovedWithoutContent):
                         tagList.remove(tag)
                         tagList.remove('/' + openTag)
-                        htmlText = htmlText.replace('<' + openTag, '')
+                        htmlText = htmlText.replace('<' + tag + '>', '')
                         htmlText = htmlText.replace('</' + openTag + '>', '')
                 
                 for tag in tagList:
