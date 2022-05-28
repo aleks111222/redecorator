@@ -181,14 +181,11 @@ def redecorate(filePath):
             if(htmlText.find('<!DOCTYPE html>') >= len(htmlText) - len(htmlText.lstrip())):
                 
                 # extract tags from the file
-                tagList = re.findall(r'<[^>\n]+>', htmlText)
-                # remove <!DOCTYPE html> from the tag list
-                tagList = tagList[1 : ]
+                tagList = re.findall(r'<[^>\n!]+>', htmlText)
                 # remove < and > from the tags
                 tagList = [tag[1 : -1] for tag in tagList]
-            
+
                 if(checkTagMatching(tagList)):
-                    
                     # apply processing
                     tagList, htmlText = removeStyleAndScriptTags(tagList, htmlText)
                     tagList, htmlText = removeTagsWithContent(tagList, htmlText)
@@ -207,13 +204,15 @@ def main():
 
         path = sys.argv[i]
 
+        # check if the path is a directory or a file
         if(os.path.exists(path)):
-
-            for filePath in os.listdir(path):
-                print(filePath)
-                redecorate(filePath)
+            if os.path.isdir(path):
+                for filePath in os.listdir(path):
+                    redecorate(filePath)
             else:
-                continue
+                redecorate(path)
+        else:
+            continue
 
 if __name__ == "__main__":
     main()
