@@ -9,11 +9,12 @@ voidElements = ['area', 'base', 'br', 'col', 'command', 'embed',
 
 def extractTags(htmlText):
 
-    tagList = re.findall(r'<[^>\n]+>', htmlText)
-    # remove <!DOCTYPE html> from the tag list
-    tagList = tagList[1 : ]
+    # find all tags
+    tagList = re.findall(r'<[^>\n!]+>', htmlText)
     # remove < and > from the tags
     tagList = [tag[1 : -1] for tag in tagList]
+
+    return tagList
 
 # method for checking the matching of the html tags
 # parameter: list of opening and closing tags extracted from the file
@@ -43,6 +44,7 @@ def checkTagMatching(tagList):
         return False
 
 def removeStyleAndScriptTags(tagList, htmlText):
+
     for (openTag, closeTag) in [('script', '/script'), ('style', '/style')]:
         if(openTag in tagList):
             beginList = tagList[ : tagList.index(openTag)]
@@ -52,21 +54,25 @@ def removeStyleAndScriptTags(tagList, htmlText):
                 beginText = htmlText[ : htmlText.find('<' + openTag)]
                 endText = htmlText[htmlText.find(closeTag + '>') + len(closeTag) + 1 : ]
                 htmlText = beginText + endText
+
     return tagList, htmlText
 
 def removeTagsWithContent(tagList, htmlText):
 
-    tagsToBeRemovedWithContent = ['figure', 'img', 'area', 
+    tagsToBeRemovedWithContent = ['figure', 'area', 
                                   'map', 'video' 'embed',
                                   'iframe', 'object', 'picture',
                                   'portal', 'canvas', 'bgsound', 
-                                  'frame', 'frameset', 'image']
+                                  'frame', 'frameset']
 
     for tag in tagList:
+
         if(tag.split()[0] in tagsToBeRemovedWithContent):
+
             openTag = tag
             beginList = tagList[ : tagList.index(openTag)]
             beginText = htmlText[ : htmlText.find('<' + openTag.split()[0])]
+
             if(not set(voidElements).intersection(set([tag.split()[0]]))):
                 closeTag = '/' + openTag
                 endList = tagList[tagList.index(closeTag) + 1 : ]
@@ -75,13 +81,16 @@ def removeTagsWithContent(tagList, htmlText):
                 closeTag = '>'
                 endList = tagList[tagList.index(openTag) + 1 : ]
                 endText = htmlText[htmlText.find(closeTag, len(beginText)) + len(closeTag): ]
+
             htmlText = beginText + endText
             tagList = beginList + endList
 
     return tagList, htmlText
 
 def removeStyleLinking(tagList, htmlText):
+
     for tag in tagList:
+
         if('link' in tag.split() and 'rel="stylesheet"' in tag.split()):
             tagList.remove(tag)
             htmlText = htmlText.replace('<' + tag + '>', '')
@@ -95,7 +104,9 @@ def removeTagsWithoutContent(tagList, htmlText):
                                      'var', 'big', 'blink']
                     
     for tag in tagList:
+
         openTag = tag.split()[0]
+
         if(openTag in tagsToBeRemovedWithoutContent):
             tagList.remove(tag)
             tagList.remove('/' + openTag)
@@ -108,12 +119,24 @@ def removeTagsConditionally(tagList, htmlText):
 
     for tag in tagList:
 
-        attributesWithValues = re.findall(r'[^\s\n]+\s*=\s*"[^>\n]+"', tag)
+        attributesWithValues = re.findall(r'[^\s\n]+\s*=\s*"[^>\n"]+"', tag)
 
         for attribute in attributesWithValues:
 
             attributeName = attribute.split('=')[0]
             attributeValue = attribute.split('=')[1][1 : ].replace('"', '')
+
+            if((tag.split()[0] == 'img' or tag.split()[0] == 'image')
+                and (attributeName == 'width' or attributeName == 'height')
+                and  int(attributeValue) > 200):
+                
+                newAttributeValue = '"' + str(200) + '"'
+                newTag = tag.replace(attribute, attributeName + '=' + newAttributeValue)
+                tagList[tagList.index(tag)] = newTag
+                tag = newTag
+                htmlText = htmlText.replace(attribute, attributeName + '=' + newAttributeValue)
+
+                continue
 
             if (attributeName == 'style'
 
@@ -130,8 +153,8 @@ def removeTagsConditionally(tagList, htmlText):
 
             or (attributeName == 'height'
             or  attributeName == 'width'
-            and int(attributeValue) > 300)):
-
+            and int(attributeValue) > 200)):
+                    
                 newTag = tag.replace(attribute, '')
                 tagList[tagList.index(tag)] = newTag
                 htmlText = htmlText.replace(attribute, '')
@@ -139,6 +162,7 @@ def removeTagsConditionally(tagList, htmlText):
     return tagList, htmlText
 
 def reformat(htmlText):
+
     # delete double spaces
     while(htmlText.find('  ') != -1):
         htmlText = htmlText.replace('  ', '', 1)
@@ -180,18 +204,17 @@ def redecorate(filePath):
             # check if the file contains a special expression at the beginning of the file
             if(htmlText.find('<!DOCTYPE html>') >= len(htmlText) - len(htmlText.lstrip())):
                 
-                # extract tags from the file
-                tagList = re.findall(r'<[^>\n!]+>', htmlText)
-                # remove < and > from the tags
-                tagList = [tag[1 : -1] for tag in tagList]
+                tagList = extractTags(htmlText)
 
                 if(checkTagMatching(tagList)):
+
                     # apply processing
                     tagList, htmlText = removeStyleAndScriptTags(tagList, htmlText)
                     tagList, htmlText = removeTagsWithContent(tagList, htmlText)
                     tagList, htmlText = removeStyleLinking(tagList, htmlText)
                     tagList, htmlText = removeTagsWithoutContent(tagList, htmlText)
                     tagList, htmlText = removeTagsConditionally(tagList, htmlText)
+
                     htmlText = reformat(htmlText)
 
                     # save the redecorated file
