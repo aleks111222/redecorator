@@ -127,7 +127,7 @@ class Testclass(unittest.TestCase):
         htmlTags, htmlText = redecorator.removeStyleLinking(htmlTags, htmlText)
         var.assertEqual(htmlText.find('<link rel="stylesheet"'), -1, "Should be -1")
 
-    def test_CheckTagRemovalWithContent(var):
+    def test_CheckTagRemovalWithoutContent(var):
         htmlText = '<!DOCTYPE html>'
         htmlText = TagFactory.addTag(htmlText, 'html', '', '', False, '', 1)
         htmlText = TagFactory.addTag(htmlText, 'body', '', '', True, 'html', 1)
@@ -152,7 +152,7 @@ class Testclass(unittest.TestCase):
         var.assertEqual(htmlText.find('<mark>'), -1, "Should be -1")
         var.assertFalse(htmlText.find('<something4>') == -1, "Should not be -1")
     
-    def test_CheckTagsRemovalConditionally(var):
+    def test_CheckTagRemovalConditionally(var):
         htmlText = '<!DOCTYPE html>'
         htmlText = TagFactory.addTag(htmlText, 'html', '', '', False, '', 1)
         htmlText = TagFactory.addTag(htmlText, 'body', '', '', True, 'html', 1)
