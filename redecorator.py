@@ -100,7 +100,7 @@ def removeStyleLinking(tagList, htmlText):
 def removeTagsWithoutContent(tagList, htmlText):
 
     tagsToBeRemovedWithoutContent = ['big', 'strong', 'em', 
-                                     'i', 'kbd' 'mark',
+                                     'i', 'kbd', 'mark',
                                      'var', 'big', 'blink']
                     
     for tag in tagList:
