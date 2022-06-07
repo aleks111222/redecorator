@@ -233,7 +233,7 @@ def redecorate(filePath):
         else:
             print('Error: The file: "', ntpath.basename(filePath), '" has an incorrect extension. Only ".html" are accepted.')    
     else:
-        print('Error: The given path does not point to a valid file or directory of files.')
+        print('Error: The path: "', filePath, '" does not point to a valid file.')
 def main():
 
     for i in range(1, len(sys.argv)):
