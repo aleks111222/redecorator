@@ -1,6 +1,7 @@
 import os
 import re
 import sys
+import ntpath
 
 # declare the list of elements that do not need closing tags
 voidElements = ['area', 'base', 'br', 'col', 'command', 'embed',
@@ -27,7 +28,7 @@ def checkTagMatching(tagList):
             if(not set(voidElements).intersection(set([tag.split()[0]]))):
                 stack.append(tag)
         else:
-            # decrease the stack if the closing tag has its closing
+            # decrease the stack if the opening tag has its closing
             if(len(stack) > 0):
                 openTag = stack[len(stack) - 1].split()[0]
                 closeTag = tag[1 : ]
@@ -89,11 +90,16 @@ def removeTagsWithContent(tagList, htmlText):
 
 def removeStyleLinking(tagList, htmlText):
 
+    tagsToBeRemoved = []
+
     for tag in tagList:
 
         if('link' in tag.split() and 'rel="stylesheet"' in tag.split()):
-            tagList.remove(tag)
+            tagsToBeRemoved.append(tag)
             htmlText = htmlText.replace('<' + tag + '>', '')
+        
+    for tag in tagsToBeRemoved:
+        tagList.remove(tag)
 
     return tagList, htmlText
 
@@ -220,7 +226,14 @@ def redecorate(filePath):
                     # save the redecorated file
                     with open(filename + '-sans-decor.html', 'w') as outfile:
                         outfile.writelines(htmlText)
-
+                else:
+                    print('Error: The file: "', ntpath.basename(filePath), '" could not be processed because the html text has misaligned opening and closing tags.')
+            else:
+                print('Error: The file: "', ntpath.basename(filePath), '" could not be processed because its text was not recognised as valid html code. (No <!DOCTYPE html> tag)')
+        else:
+            print('Error: The file: "', ntpath.basename(filePath), '" has an incorrect extension. Only ".html" are accepted.')    
+    else:
+        print('Error: The given path does not point to a valid file or directory of files.')
 def main():
 
     for i in range(1, len(sys.argv)):
@@ -235,7 +248,7 @@ def main():
             else:
                 redecorate(path)
         else:
-            continue
+            print('Error: Please enter a valid path to a directory or a file.')
 
 if __name__ == "__main__":
     main()
